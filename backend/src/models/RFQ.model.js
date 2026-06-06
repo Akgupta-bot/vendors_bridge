@@ -12,6 +12,8 @@ const rfqSchema = new mongoose.Schema(
       required: true,
     },
 
+ items: [
+  {
     productName: {
       type: String,
       required: true,
@@ -21,6 +23,13 @@ const rfqSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+
+    expectedPrice: {
+      type: Number,
+      default: 0,
+    },
+  },
+],
 
     deadline: {
       type: Date,

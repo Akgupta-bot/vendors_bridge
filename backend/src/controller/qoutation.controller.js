@@ -1,7 +1,28 @@
 const qoutationModel=require("../models/qoutation.model")
+const venderModel=require("../models/vendor.model")
+
 const submitQuotation = async (req, res) => {
   try {
-    const quotation = await Quotation.create(req.body);
+    const Vendor = require("../models/Vendor");
+
+const vendor = await Vendor.findOne({
+  user: req.user.id,
+});
+
+if (!vendor) {
+  return res.status(404).json({
+    success: false,
+    message: "Vendor Profile Not Found",
+  });
+}
+
+const quotation = await Quotation.create({
+  rfq: req.body.rfq,
+  vendor: vendor._id,
+  quotedPrice: req.body.quotedPrice,
+  deliveryDays: req.body.deliveryDays,
+  notes: req.body.notes,
+});
 
     res.status(201).json({
       success: true,

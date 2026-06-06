@@ -1,11 +1,17 @@
 const mongoose = require("mongoose");
 
-const quotationSchema = new mongoose.Schema(
+const invoiceSchema = new mongoose.Schema(
   {
-    rfq: {
+    invoiceNumber: {
+      type: String,
+      unique: true,
+    },
+
+    purchaseOrder: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "RFQ",
+      ref: "PurchaseOrder",
       required: true,
+      unique: true,
     },
 
     vendor: {
@@ -14,45 +20,37 @@ const quotationSchema = new mongoose.Schema(
       required: true,
     },
 
-    quotedPrice: {
+    subtotal: {
       type: Number,
       required: true,
     },
 
-    deliveryDays: {
+    gstAmount: {
       type: Number,
       required: true,
     },
 
-    notes: {
-      type: String,
-      default: "",
+    totalAmount: {
+      type: Number,
+      required: true,
     },
-    
 
     status: {
       type: String,
       enum: [
-        "Submitted",
-        "Selected",
-        "Rejected"
+        "Generated",
+        "Sent",
+        "Paid"
       ],
-      default: "Submitted",
+      default: "Generated",
     },
-    approvalStatus: {
-  type: String,
-  enum: [
-    "Pending",
-    "Approved",
-    "Rejected",
-  ],
-  default: "Pending",
-},
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 module.exports = mongoose.model(
-  "Quotation",
-  quotationSchema
+  "Invoice",
+  invoiceSchema
 );

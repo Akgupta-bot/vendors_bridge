@@ -1,5 +1,5 @@
 const Approval = require("../models/approval.model");
-const Quotation = require("../models/quotation.model");
+const Quotation = require("../models/qoutation.model");
 
 const createApproval = async (
   req,
@@ -66,6 +66,12 @@ const approveQuotation = async (
           new: true,
         }
       );
+      await Quotation.findByIdAndUpdate(
+  approval.quotation,
+  {
+    approvalStatus: "Approved",
+  }
+);
 
     res.json({
       success: true,
@@ -108,6 +114,12 @@ const rejectQuotation = async (
           new: true,
         }
       );
+      await Quotation.findByIdAndUpdate(
+  approval.quotation,
+  {
+    approvalStatus: "Rejected",
+  }
+);
 
     res.json({
       success: true,

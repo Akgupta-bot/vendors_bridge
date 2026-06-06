@@ -1,4 +1,4 @@
-const Vendor = require("../models/Vendor.model");
+const Vendor = require("../models/vendor.model");
 
 
 // Create Vendor
