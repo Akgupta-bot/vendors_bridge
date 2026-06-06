@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Environment Variables
+.env
+
+# Logs
+logs
+*.log
+
+# Build Files
+dist/
+build/
+
+# Vite
+.vite/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# MongoDB
+*.sqlite
