@@ -32,7 +32,7 @@ const Sidebar = () => {
     },
     {
       name: "Quotations",
-      path: "/quotations",
+      path: "/qotations",
       icon: Scale,
     },
     {
@@ -42,7 +42,7 @@ const Sidebar = () => {
     },
     {
       name: "Purchase Orders",
-      path: "/purchase-orders",
+      path: "/purchase-order-invoice",
       icon: ShoppingCart,
     },
     {
