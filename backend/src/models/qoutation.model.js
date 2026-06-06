@@ -28,6 +28,7 @@ const quotationSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    
 
     status: {
       type: String,
@@ -38,6 +39,15 @@ const quotationSchema = new mongoose.Schema(
       ],
       default: "Submitted",
     },
+    approvalStatus: {
+  type: String,
+  enum: [
+    "Pending",
+    "Approved",
+    "Rejected",
+  ],
+  default: "Pending",
+},
   },
   { timestamps: true }
 );
