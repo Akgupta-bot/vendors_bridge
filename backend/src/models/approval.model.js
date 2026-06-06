@@ -16,17 +16,14 @@ const approvalSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: [
-        "Pending",
-        "Approved",
-        "Rejected",
-      ],
-      default: "Pending",
+      enum: ["PENDING", "APPROVED", "REJECTED"],
+      default: "PENDING",
     },
 
     remarks: {
       type: String,
       default: "",
+      trim: true,
     },
 
     approvedAt: {
@@ -36,7 +33,7 @@ const approvalSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model(
-  "Approval",
-  approvalSchema
-);
+approvalSchema.index({ quotation: 1, status: 1 });
+approvalSchema.index({ manager: 1 });
+
+module.exports = mongoose.model("Approval", approvalSchema);

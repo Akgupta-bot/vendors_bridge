@@ -1,14 +1,40 @@
-const express=require("express")
-const approvalController=require("../controller/approval.controller")
-const authMiddleware=require("../middleware/auth.middleware")
-const roleMiddleware=require("../middleware/role.middleware")
-const router=express.Router()
+const express = require("express");
+const router = express.Router();
 
-router.post("/create-approval/:quotationId",authMiddleware,roleMiddleware("ProcurementOfficer"),approvalController.createApproval)
-router.put("/approve/:approvalId",authMiddleware,roleMiddleware("ProcurementOfficer"),approvalController.approveQuotation)
-router.put("/reject/:approvalId",authMiddleware,roleMiddleware("ProcurementOfficer"),approvalController.rejectQuotation)
-router.get("/get-approval/:id",authMiddleware,roleMiddleware("ProcurementOfficer"),approvalController.getApproval)
+const { protect, authorize } = require("../middleware/auth.middleware");
+const {
+  createApproval,
+  approveQuotation,
+  rejectQuotation,
+  getApproval
+} = require("../controller/approval.controller");
 
+router.post(
+  "/create/:quotationId",
+  protect,
+  authorize("PROCUREMENT_OFFICER", "ADMIN"),
+  createApproval
+);
 
+router.put(
+  "/approve/:approvalId",
+  protect,
+  authorize("MANAGER", "ADMIN"),
+  approveQuotation
+);
 
-module.exports=router
+router.put(
+  "/reject/:approvalId",
+  protect,
+  authorize("MANAGER", "ADMIN"),
+  rejectQuotation
+);
+
+router.get(
+  "/:id",
+  protect,
+  authorize("PROCUREMENT_OFFICER", "MANAGER", "ADMIN"),
+  getApproval
+);
+
+module.exports = router;
