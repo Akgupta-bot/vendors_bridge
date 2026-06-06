@@ -1,5 +1,8 @@
 const invoice = require("../models/invoice.model");
 const purchaseOrder = require("../models/purchaseOrder.model")
+const generateInvoicePDF=require("../utils/generrateInvoicePdf")
+const sendEmail=require("../utils/sendEmail")
+
 
 const createInvoice = async (
   req,
@@ -158,9 +161,96 @@ const getAllInvoices =
     }
   };
 
+  const downloadInvoicePDF =
+async (req, res) => {
+
+  try {
+
+    const invoice =
+      await Invoice.findById(
+        req.params.id
+      );
+
+    if (!invoice) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "Invoice not found",
+      });
+    }
+
+    generateInvoicePDF(
+      invoice,
+      res
+    );
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+
+  }
+};
+
+const emailInvoice =
+async (req, res) => {
+
+  try {
+
+    const invoice =
+      await Invoice.findById(
+        req.params.id
+      )
+      .populate("vendor");
+
+    if (!invoice) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "Invoice not found",
+      });
+    }
+
+    await sendEmail(
+      invoice.vendor.email,
+      "Invoice Generated",
+      `
+Invoice Number:
+${invoice.invoiceNumber}
+
+Total:
+₹${invoice.totalAmount}
+      `
+    );
+
+    invoice.status = "Sent";
+
+    await invoice.save();
+
+    res.json({
+      success: true,
+      message:
+        "Invoice Email Sent",
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+
+  }
+};
+
   module.exports = {
   createInvoice,
   getInvoice,
   getAllInvoices,
   markInvoicePaid,
+  downloadInvoicePDF,
+  emailInvoice,
+
 };
