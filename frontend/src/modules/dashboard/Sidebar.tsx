@@ -32,24 +32,20 @@ const Sidebar = () => {
     },
     {
       name: "Quotations",
-      path: "/qotations",
+      path: "/qotation",
       icon: Scale,
     },
     {
-      name: "Approvals",
-      path: "/approvals",
+      name: "Approval",
+      path: "/approval",
       icon: ClipboardCheck,
     },
     {
-      name: "Purchase Orders",
+      name: "Purchase Orders & invoice",
       path: "/purchase-order-invoice",
       icon: ShoppingCart,
     },
-    {
-      name: "Invoices",
-      path: "/invoices",
-      icon: Receipt,
-    },
+    
     {
       name: "Reports",
       path: "/reports",

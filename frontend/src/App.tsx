@@ -10,6 +10,7 @@ import QuotationComparisonPage from "./modules/dashboard/QoutationComparisonPage
 import ApprovalPage from "./modules/dashboard/ApprovalPage";
 import PurchaseOrderInvoicePage from "./modules/dashboard/PurchaseOrderInvoicePage";
 import ActivityLogsPage from "./modules/dashboard/ActivityLogsPage";
+import ReportsPage from "./modules/dashboard/ReportsPage";
 
 
 const UnauthorizedMock = () => <div className="p-8 text-rose-600 font-bold">Access Denied: You do not have permissions for this module.</div>;
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="/approval" element={<ApprovalPage />}/>
         <Route path="/purchase-order-invoice" element={<PurchaseOrderInvoicePage />}/>
         <Route path="/activity" element={<ActivityLogsPage />}/>
+        <Route path="/reports" element={<ReportsPage />} />
       </Routes>
     </Router>
   );
