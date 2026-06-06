@@ -6,6 +6,12 @@ import Dashboard from './modules/dashboard/LandingPage';
 import VendorsPage from "./modules/dashboard/VendorsPage";
 import RFQsPage from "./modules/dashboard/RfqsPage";
 import QoutationPage from "./modules/dashboard/QoutationPage";
+import QuotationComparisonPage from "./modules/dashboard/QoutationComparisonPage";
+import ApprovalPage from "./modules/dashboard/ApprovalPage";
+
+
+
+
 
 
 
@@ -40,6 +46,9 @@ export default function App() {
         <Route path="/vendors" element={<VendorsPage />} />
         <Route path="/rfqs" element={<RFQsPage />} />
         <Route path="/qoutation" element={<QoutationPage/>} />
+        <Route path="/quotation-comparison"element={<QuotationComparisonPage />}/>
+        <Route path="approval"element={<ApprovalPage />}/>
+
       </Routes>
     </Router>
   );
