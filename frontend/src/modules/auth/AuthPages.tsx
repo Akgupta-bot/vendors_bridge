@@ -2,8 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  User, Mail, Phone, Globe, Shield, Lock, 
-  FileText, Check, Upload, ArrowRight, ArrowLeft, Eye, EyeOff, Loader2
+  Upload, Eye, EyeOff, Loader2, ArrowLeft
 } from 'lucide-react';
 import { apiClient } from '../../api/axios';
 import { useAuthStore } from '../../store/authStore';
@@ -13,7 +12,7 @@ type AuthMode = 'LOGIN' | 'REGISTER';
 
 export const AuthPages: React.FC = () => {
   const navigate = useNavigate();
-  const loginGlobalStore = useAuthStore((state) => state.login);
+  const setAuthData = useAuthStore((state) => state.setAuthData);
 
   const [mode, setMode] = useState<AuthMode>('LOGIN');
   const [showPassword, setShowPassword] = useState(false);
@@ -36,7 +35,7 @@ export const AuthPages: React.FC = () => {
 
   // Login Form State
   const [loginForm, setLoginForm] = useState({
-    username: '',
+    username: '', // Bound to email input
     password: '',
   });
 
@@ -55,9 +54,7 @@ export const AuthPages: React.FC = () => {
     }
   };
 
-  // =========================================================================
-  // API INTEGRATION ROUTINES
-  // =========================================================================
+  
   
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +67,7 @@ export const AuthPages: React.FC = () => {
     setErrorMessage(null);
 
     try {
+      // Fixed: Send clean mapped properties to match backend auth schema
       const response = await apiClient.post('/auth/login', {
         email: loginForm.username,
         password: loginForm.password,
@@ -77,11 +75,8 @@ export const AuthPages: React.FC = () => {
 
       const { user, token } = response.data;
       
-      // Seed global Zustand auth state profile metadata
-      loginGlobalStore(user, token);
-      
-      // Set persistence layer authorization header token string
-      localStorage.setItem('token', token);
+      // Save data safely using our clear Zustand dispatcher action
+      setAuthData(user, token);
       
       navigate('/dashboard');
     } catch (err: any) {
@@ -108,24 +103,23 @@ export const AuthPages: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Package payload data frame strings
       const payload = {
         firstName: registerForm.firstName,
         lastName: registerForm.lastName,
         email: registerForm.email,
         phone: registerForm.phone,
         country: registerForm.country,
-        role: registerForm.role,
+        role: registerForm.role.toUpperCase(), // Enforces clean uppercase backend matches
         password: registerForm.password,
         additionalInfo: registerForm.additionalInfo,
-        avatar: profilePreview // base64 encoded block string data stream if attached
+        avatar: profilePreview
       };
 
       await apiClient.post('/auth/register', payload);
       
-      // Clean up local tracking loops and shift state context back to login matrix
       setMode('LOGIN');
-      alert('Registration successful! Please log in with your new account parameters.');
+      setLoginForm({ username: registerForm.email, password: '' }); // Pre-fill login email for convenience
+      alert('Registration successful! Please log in with your credentials.');
     } catch (err: any) {
       setErrorMessage(err.response?.data?.message || 'Registration data upload rejected by network.');
     } finally {
@@ -136,7 +130,7 @@ export const AuthPages: React.FC = () => {
   return (
     <div className="h-screen w-screen bg-slate-100 flex items-center justify-center p-4 md:p-8 overflow-hidden font-sans">
       
-      {/* Outer Card Wrapper matching the Pinterest frame */}
+      {/* Outer Card Wrapper */}
       <div className="w-full max-w-5xl h-full max-h-[720px] bg-white rounded-3xl shadow-xl border border-slate-200/60 overflow-hidden flex flex-col md:flex-row relative">
         
         {/* Universal Dynamic Error Notification Banner */}
@@ -167,7 +161,6 @@ export const AuthPages: React.FC = () => {
               transition={{ duration: 0.3 }}
               className="w-full md:w-1/2 h-full p-8 lg:p-16 flex flex-col justify-between bg-white"
             >
-              {/* Spacer/Logo placeholder */}
               <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 text-xs font-bold">
                 VB
               </div>
@@ -257,7 +250,7 @@ export const AuthPages: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="w-full md:w-1/2 h-full p-6 lg:p-10 flex flex-col justify-between bg-white overflow-y-auto custom-scrollbar"
+              className="w-full md:w-1/2 h-full p-6 lg:p-10 flex flex-col justify-between bg-white overflow-y-auto"
             >
               <div>
                 <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
@@ -276,7 +269,7 @@ export const AuthPages: React.FC = () => {
 
                 <form onSubmit={handleRegisterSubmit} className="space-y-4">
                   
-                  {/* Photo Section */}
+                  {/* Photo Upload Section */}
                   <div className="flex items-center gap-4 bg-slate-50 p-3 rounded-2xl border border-slate-100">
                     <div 
                       onClick={() => !isLoading && fileInputRef.current?.click()}
@@ -295,7 +288,7 @@ export const AuthPages: React.FC = () => {
                     <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handlePhotoChange} disabled={isLoading} />
                   </div>
 
-                  {/* Standardized Input Grid */}
+                  {/* Form Fields Grid */}
                   <div className="grid grid-cols-2 gap-3">
                     <input 
                       type="text" placeholder="First Name" required disabled={isLoading}
@@ -321,7 +314,6 @@ export const AuthPages: React.FC = () => {
                     value={registerForm.phone} onChange={(e) => setRegisterForm({...registerForm, phone: e.target.value})}
                   />
 
-                  {/* Select Options */}
                   <div className="grid grid-cols-2 gap-3">
                     <select 
                       required disabled={isLoading}
@@ -380,7 +372,7 @@ export const AuthPages: React.FC = () => {
                     disabled={isLoading}
                     className="w-full bg-slate-950 hover:bg-slate-800 text-white font-bold py-2.5 rounded-full transition text-xs shadow-md flex items-center justify-center gap-2 disabled:bg-slate-700"
                   >
-                    {isLoading ? <Loader2 className="animate-spin" size={16} /> : 'Register Button'}
+                    {isLoading ? <Loader2 className="animate-spin" size={16} /> : 'Register Account'}
                   </button>
                 </form>
               </div>
@@ -389,7 +381,7 @@ export const AuthPages: React.FC = () => {
         </AnimatePresence>
 
         {/* ========================================================================= */
-        /* 3. MINT GRAPHIC PANEL                                                     */
+        /* 3. MINT GRAPHIC SIDE PANEL                                                */
         /* ========================================================================= */}
         <div className="hidden md:flex md:w-1/2 h-full bg-[#f4fbf7] p-12 flex-col justify-between items-center text-center relative select-none">
           <div className="flex gap-1.5 mt-2">
