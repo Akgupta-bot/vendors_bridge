@@ -1,28 +1,54 @@
 const express = require("express");
-const authMiddleware = require("../middleware/auth.middleware");
-const roleMiddleware=require("../middleware/role.middleware")
-const rfqController = require("../controller/RFQ.controller");
-
 const router = express.Router();
+
+
+const { protect, authorize } = require("../middleware/auth.middleware");
+
+// 2. Import the RFQ controller methods safely (Make sure folder path matches 'controller')
+const {
+  createRFQ,
+  getAllRFQs,
+  getRFQById,
+  updateRFQ,
+  deleteRFQ
+} = require("../controller/RFQ.controller");
+
 
 router.post(
   "/create",
-  authMiddleware,
-  roleMiddleware("ProcurementOfficer","Admin"),
-  rfqController.createRFQ
+  protect,
+  authorize("PROCUREMENT_OFFICER", "ADMIN"),
+  createRFQ
 );
+
+
 router.get(
   "/get-all",
-  authMiddleware,
-  rfqController.getAllRFQs
+  protect,
+  getAllRFQs
 );
+
+
 router.get(
   "/get-rfq/:id",
-  authMiddleware,
-  rfqController.getRFQById
+  protect,
+  getRFQById
 );
-router.put("/update/:id",authMiddleware,roleMiddleware("ProcurementOfficer","Admin"),rfqController.updateRFQ);
-router.delete("/delete/:id",authMiddleware,roleMiddleware("Admin"),rfqController.deleteRFQ);
 
+
+router.put(
+  "/update/:id",
+  protect,
+  authorize("PROCUREMENT_OFFICER", "ADMIN"),
+  updateRFQ
+);
+
+
+router.delete(
+  "/delete/:id",
+  protect,
+  authorize("ADMIN"),
+  deleteRFQ
+);
 
 module.exports = router;

@@ -3,34 +3,53 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 
-// REGISTER
-
 const register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { 
+      firstName, 
+      lastName, 
+      email, 
+      password, 
+      phone, 
+      country, 
+      role, 
+      additionalInfo,
+      avatar 
+    } = req.body;
 
+   
     const existingUser = await User.findOne({ email });
-
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "User already exists",
+        message: "This email workspace is already registered inside the ERP system.",
       });
     }
 
+  
     const hashedPassword = await bcrypt.hash(password, 10);
 
+
     const user = await User.create({
-      name,
+      firstName,
+      lastName,
       email,
       password: hashedPassword,
-      role,
+      phone,
+      country,
+      role: role ? role.toUpperCase() : "VENDOR",  
+      additionalInfo,
+      avatar
     });
+
+ 
+    const userResponse = user.toObject();
+    delete userResponse.password;
 
     res.status(201).json({
       success: true,
-      message: "User Registered Successfully",
-      user,
+      message: "User Node Registered Successfully",
+      user: userResponse,
     });
   } catch (error) {
     res.status(500).json({
@@ -41,14 +60,20 @@ const register = async (req, res) => {
 };
 
 
-// LOGIN
-
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+   
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter both email and password parameters.",
+      });
+    }
 
+    
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({
         success: false,
@@ -56,11 +81,8 @@ const login = async (req, res) => {
       });
     }
 
-    const isMatch = await bcrypt.compare(
-      password,
-      user.password
-    );
-
+    
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({
         success: false,
@@ -68,21 +90,33 @@ const login = async (req, res) => {
       });
     }
 
+  
     const token = jwt.sign(
       {
         id: user._id,
-        role: user.role,
+        role: user.role, 
       },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "fallback_workspace_secret_string",
       {
         expiresIn: "7d",
       }
     );
 
+
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    
     res.json({
       success: true,
       token,
-      user,
+      user: {
+        id: userResponse._id,
+        name: `${userResponse.firstName} ${userResponse.lastName}`, 
+        email: userResponse.email,
+        role: userResponse.role, 
+        avatar: userResponse.avatar
+      },
     });
   } catch (error) {
     res.status(500).json({
@@ -91,7 +125,6 @@ const login = async (req, res) => {
     });
   }
 };
-
 
 module.exports = {
   register,

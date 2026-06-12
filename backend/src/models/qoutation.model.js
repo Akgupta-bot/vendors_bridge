@@ -17,42 +17,37 @@ const quotationSchema = new mongoose.Schema(
     quotedPrice: {
       type: Number,
       required: true,
+      min: 0,
     },
 
     deliveryDays: {
       type: Number,
       required: true,
+      min: 1,
     },
 
     notes: {
       type: String,
       default: "",
+      trim: true,
     },
-    
 
     status: {
       type: String,
-      enum: [
-        "Submitted",
-        "Selected",
-        "Rejected"
-      ],
-      default: "Submitted",
+      enum: ["SUBMITTED", "SELECTED", "REJECTED"],
+      default: "SUBMITTED",
     },
+
     approvalStatus: {
-  type: String,
-  enum: [
-    "Pending",
-    "Approved",
-    "Rejected",
-  ],
-  default: "Pending",
-},
+      type: String,
+      enum: ["PENDING", "APPROVED", "REJECTED"],
+      default: "PENDING",
+    },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model(
-  "Quotation",
-  quotationSchema
-);
+quotationSchema.index({ rfq: 1, quotedPrice: 1 });
+quotationSchema.index({ vendor: 1 });
+
+module.exports = mongoose.model("Quotation", quotationSchema);

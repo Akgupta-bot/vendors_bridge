@@ -4,13 +4,15 @@ const purchaseOrderSchema = new mongoose.Schema(
   {
     poNumber: {
       type: String,
+      required: true,
       unique: true,
+      trim: true,
     },
 
     quotation: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Quotation",
-      unique:true,
+      unique: true,
       required: true,
     },
 
@@ -29,26 +31,25 @@ const purchaseOrderSchema = new mongoose.Schema(
     subtotal: {
       type: Number,
       required: true,
+      min: 0,
     },
 
     gstAmount: {
       type: Number,
       required: true,
+      min: 0,
     },
 
     totalAmount: {
       type: Number,
       required: true,
+      min: 0,
     },
 
     status: {
       type: String,
-      enum: [
-        "Created",
-        "Sent",
-        "Completed"
-      ],
-      default: "Created",
+      enum: ["CREATED", "SENT", "COMPLETED"],
+      default: "CREATED",
     },
   },
   {
@@ -56,7 +57,7 @@ const purchaseOrderSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model(
-  "PurchaseOrder",
-  purchaseOrderSchema
-);
+
+purchaseOrderSchema.index({ vendor: 1, status: 1 });
+
+module.exports = mongoose.model("PurchaseOrder", purchaseOrderSchema);

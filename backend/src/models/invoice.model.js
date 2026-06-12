@@ -4,14 +4,15 @@ const invoiceSchema = new mongoose.Schema(
   {
     invoiceNumber: {
       type: String,
+      required: true,
       unique: true,
+      trim: true,
     },
 
     purchaseOrder: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "PurchaseOrder",
       required: true,
-      unique: true,
     },
 
     vendor: {
@@ -23,26 +24,30 @@ const invoiceSchema = new mongoose.Schema(
     subtotal: {
       type: Number,
       required: true,
+      min: 0,
     },
 
     gstAmount: {
       type: Number,
       required: true,
+      min: 0,
     },
 
     totalAmount: {
       type: Number,
       required: true,
+      min: 0,
     },
 
-    status: {
+    paymentStatus: {
       type: String,
-      enum: [
-        "Generated",
-        "Sent",
-        "Paid"
-      ],
-      default: "Generated",
+      enum: ["UNPAID", "PAID", "PARTIAL", "OVERDUE"],
+      default: "UNPAID",
+    },
+
+    pdfUrl: {
+      type: String,
+      default: "",
     },
   },
   {
@@ -50,7 +55,7 @@ const invoiceSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model(
-  "Invoice",
-  invoiceSchema
-);
+
+invoiceSchema.index({ vendor: 1, paymentStatus: 1 });
+
+module.exports = mongoose.model("Invoice", invoiceSchema);

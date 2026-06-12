@@ -1,19 +1,28 @@
 const express = require("express");
-const authMiddleware = require("../middleware/auth.middleware");
-const authController = require("../controller/auth.controller");
 const router = express.Router();
+const { protect, authorize } = require("../middleware/auth.middleware");
+const { register, login } = require("../controller/auth.controller");
 
-router.post("/register", authController.register);
-router.post("/login", authController.login);
-router.get("/profile",
-  authMiddleware,
-  (req, res) => {
-    res.json({
-      success: true,
-      user: req.user,
-    });
-  }
-)
 
+router.post("/register", register);
+
+router.post("/login", login);
+
+
+router.get("/notifications", protect, (req, res) => {
+  res.json({ message: "Notifications loaded." });
+});
+
+
+
+
+router.post("/rfq/create", protect, authorize("PROCUREMENT_OFFICER", "ADMIN"), (req, res) => {
+  res.json({ message: "RFQ structured workflow initiated." });
+});
+
+
+router.post("/quotations/approve", protect, authorize("MANAGER"), (req, res) => {
+  res.json({ message: "Quotation pipeline approved." });
+});
 
 module.exports = router;

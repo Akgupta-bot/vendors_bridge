@@ -1,256 +1,99 @@
-const invoice = require("../models/invoice.model");
-const purchaseOrder = require("../models/purchaseOrder.model")
-const generateInvoicePDF=require("../utils/generrateInvoicePdf")
-const sendEmail=require("../utils/sendEmail")
+const Invoice = require("../models/invoice.model");
+const PurchaseOrder = require("../models/purchaseOrder.model");
 
-
-const createInvoice = async (
-  req,
-  res
-) => {
+const createInvoice = async (req, res) => {
   try {
-
-    const po =
-      await PurchaseOrder.findById(
-        req.params.purchaseOrderId
-      );
+    const po = await PurchaseOrder.findById(req.params.poId);
 
     if (!po) {
       return res.status(404).json({
         success: false,
-        message:
-          "Purchase Order not found",
+        message: "Associated Purchase Order not found.",
       });
     }
 
-    const existingInvoice =
-      await Invoice.findOne({
-        purchaseOrder: po._id,
-      });
-
-    if (existingInvoice) {
+    const invoiceExists = await Invoice.findOne({ purchaseOrder: po._id });
+    if (invoiceExists) {
       return res.status(400).json({
         success: false,
-        message:
-          "Invoice already generated",
+        message: "An invoice ledger node has already been generated for this Purchase Order.",
       });
     }
 
-    const invoice =
-      await Invoice.create({
-        invoiceNumber:
-          "INV-" + Date.now(),
-
-        purchaseOrder: po._id,
-
-        vendor: po.vendor,
-
-        subtotal: po.subtotal,
-
-        gstAmount: po.gstAmount,
-
-        totalAmount:
-          po.totalAmount,
-      });
+    const invoice = await Invoice.create({
+      invoiceNumber: "INV-" + Date.now(),
+      purchaseOrder: po._id,
+      vendor: po.vendor,
+      subtotal: po.subtotal,
+      gstAmount: po.gstAmount,
+      totalAmount: po.totalAmount,
+      paymentStatus: "UNPAID",
+    });
 
     res.status(201).json({
       success: true,
       invoice,
     });
-
   } catch (error) {
-
     res.status(500).json({
       success: false,
       message: error.message,
     });
-
   }
 };
 
-const getInvoice = async (
-  req,
-  res
-) => {
+const getInvoiceById = async (req, res) => {
   try {
-
-    const invoice =
-      await Invoice.findById(
-        req.params.id
-      )
-      .populate("vendor")
+    const invoice = await Invoice.findById(req.params.id)
+      .populate({
+        path: "vendor",
+        populate: { path: "user", select: "firstName lastName email" }
+      })
       .populate("purchaseOrder");
 
     if (!invoice) {
       return res.status(404).json({
         success: false,
-        message:
-          "Invoice not found",
+        message: "Invoice profile instance not found.",
       });
     }
 
-    res.json({
+    res.status(200).json({
       success: true,
       invoice,
     });
-
   } catch (error) {
-
     res.status(500).json({
       success: false,
       message: error.message,
     });
-
   }
 };
 
-const getAllInvoices =
-  async (req, res) => {
-    try {
-
-      const invoices =
-        await Invoice.find()
-          .populate("vendor")
-          .populate(
-            "purchaseOrder"
-          );
-
-      res.json({
-        success: true,
-        count: invoices.length,
-        invoices,
-      });
-
-    } catch (error) {
-
-      res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-
-    }
-  };
-
-  const markInvoicePaid =
-  async (req, res) => {
-    try {
-
-      const invoice =
-        await Invoice.findByIdAndUpdate(
-          req.params.id,
-          {
-            status: "Paid",
-          },
-          {
-            new: true,
-          }
-        );
-
-      res.json({
-        success: true,
-        invoice,
-      });
-
-    } catch (error) {
-
-      res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-
-    }
-  };
-
-  const downloadInvoicePDF =
-async (req, res) => {
-
+const getAllInvoices = async (req, res) => {
   try {
+    const invoices = await Invoice.find()
+      .populate({
+        path: "vendor",
+        populate: { path: "user", select: "firstName lastName email" }
+      })
+      .sort({ createdAt: -1 });
 
-    const invoice =
-      await Invoice.findById(
-        req.params.id
-      );
-
-    if (!invoice) {
-      return res.status(404).json({
-        success: false,
-        message:
-          "Invoice not found",
-      });
-    }
-
-    generateInvoicePDF(
-      invoice,
-      res
-    );
-
-  } catch (error) {
-
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-
-  }
-};
-
-const emailInvoice =
-async (req, res) => {
-
-  try {
-
-    const invoice =
-      await Invoice.findById(
-        req.params.id
-      )
-      .populate("vendor");
-
-    if (!invoice) {
-      return res.status(404).json({
-        success: false,
-        message:
-          "Invoice not found",
-      });
-    }
-
-    await sendEmail(
-      invoice.vendor.email,
-      "Invoice Generated",
-      `
-Invoice Number:
-${invoice.invoiceNumber}
-
-Total:
-₹${invoice.totalAmount}
-      `
-    );
-
-    invoice.status = "Sent";
-
-    await invoice.save();
-
-    res.json({
+    res.status(200).json({
       success: true,
-      message:
-        "Invoice Email Sent",
+      count: invoices.length,
+      invoices,
     });
-
   } catch (error) {
-
     res.status(500).json({
       success: false,
       message: error.message,
     });
-
   }
 };
 
-  module.exports = {
+module.exports = {
   createInvoice,
-  getInvoice,
+  getInvoiceById,
   getAllInvoices,
-  markInvoicePaid,
-  downloadInvoicePDF,
-  emailInvoice,
-
 };

@@ -1,13 +1,32 @@
 const express = require("express");
-const authMiddleware=require("../middleware/auth.middleware")
-const roleMiddleware=require("../middleware/role.middleware")
-const purchaseOrderController=require("../controller/purchaseOrder.controller")
-
 const router = express.Router();
 
-router.post("/create-purchase-order/:quotationId",authMiddleware,roleMiddleware("ProcurementOfficer","Admin"),purchaseOrderController.createPurchaseOrder)
-router.get("/get-purchase-order/:id",authMiddleware,purchaseOrderController.getPurchaseOrder)
-router.get("/get-all-purchase-orders",authMiddleware,purchaseOrderController.getAllPurchaseOrders)
-    
+const { protect, authorize } = require("../middleware/auth.middleware");
+const {
+  createPurchaseOrder,
+  getPurchaseOrder,
+  getAllPurchaseOrders
+} = require("../controller/purchaseOrder.controller");
 
-module.exports=router
+router.post(
+  "/create/:quotationId",
+  protect,
+  authorize("PROCUREMENT_OFFICER", "ADMIN"),
+  createPurchaseOrder
+);
+
+router.get(
+  "/get-order/:id",
+  protect,
+  authorize("PROCUREMENT_OFFICER", "MANAGER", "VENDOR", "ADMIN"),
+  getPurchaseOrder
+);
+
+router.get(
+  "/get-all",
+  protect,
+  authorize("PROCUREMENT_OFFICER", "MANAGER", "ADMIN"),
+  getAllPurchaseOrders
+);
+
+module.exports = router;
